@@ -5,6 +5,7 @@ import org.example.ecommerceapp.dtos.FakeStoreRequestDTO;
 import org.example.ecommerceapp.dtos.FakeStoreResponseDTO;
 import org.example.ecommerceapp.exceptions.ProductNotCreatedException;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
+import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Product;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -20,7 +21,7 @@ public class FakeStoreProductService implements ProductService{
     }
 
     @Override
-    public Product getProductById(long id) throws ProductNotFoundException {
+    public Product getProductById(long id, String token, String email) throws ProductNotFoundException, UserNotLoggedInException {
         // create a product initially as a practise
 //        Product product = new Product();
 //        product.setId(id);

@@ -2,6 +2,7 @@ package org.example.ecommerceapp.controllers;
 
 import org.example.ecommerceapp.dtos.ProductResponseDTO;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
+import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Category;
 import org.example.ecommerceapp.models.Product;
 import org.example.ecommerceapp.services.ProductService;
@@ -45,13 +46,13 @@ public class ProductControllerTest {
         return product;
     }
     @Test
-    public void testGetProductByIdReturnsProductResponseDTO() throws ProductNotFoundException {
+    public void testGetProductByIdReturnsProductResponseDTO() throws ProductNotFoundException, UserNotLoggedInException {
         //arrange
         Product dummyProduct = getDummyProduct();
-        when(productService.getProductById(anyLong())).thenReturn(dummyProduct);
+        when(productService.getProductById(anyLong(),"","")).thenReturn(dummyProduct);
 
         //act
-        ResponseEntity<ProductResponseDTO> responseEntity = productController.getProductById(1L);
+        ResponseEntity<ProductResponseDTO> responseEntity = productController.getProductById(1L,"","");
         ProductResponseDTO productResponseDTO = responseEntity.getBody();
 
         //assert
@@ -66,12 +67,12 @@ public class ProductControllerTest {
 
     // sri krishna
     @Test
-    public void testGetProductByIdReturnsNull() throws ProductNotFoundException {
+    public void testGetProductByIdReturnsNull() throws ProductNotFoundException, UserNotLoggedInException {
         Product dummyProduct = getDummyProduct();
         //arange
-        when(productService.getProductById(anyLong())).thenReturn(null);
+        when(productService.getProductById(anyLong(),"","")).thenReturn(null);
         //act
-        ResponseEntity<ProductResponseDTO> responseEntity = productController.getProductById(1L);
+        ResponseEntity<ProductResponseDTO> responseEntity = productController.getProductById(1L,"","");
         ProductResponseDTO productResponseDTO = responseEntity.getBody();
 
         //assert

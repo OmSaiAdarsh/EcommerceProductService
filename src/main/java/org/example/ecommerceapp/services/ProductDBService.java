@@ -2,6 +2,8 @@ package org.example.ecommerceapp.services;
 
 import org.example.ecommerceapp.exceptions.ProductNotCreatedException;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
+import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
+import org.example.ecommerceapp.helpers.UserServiceHelper;
 import org.example.ecommerceapp.models.Category;
 import org.example.ecommerceapp.models.Product;
 import org.example.ecommerceapp.repositories.CategoryRepository;
@@ -15,16 +17,22 @@ import java.util.Optional;
 public class ProductDBService implements ProductService{
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
-    public ProductDBService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    UserServiceHelper userServiceHelper;
+    public ProductDBService(ProductRepository productRepository, CategoryRepository categoryRepository, UserServiceHelper userServiceHelper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.userServiceHelper = userServiceHelper;
     }
     @Override
-    public Product getProductById(long id) throws ProductNotFoundException {
+    public Product getProductById(long id, String token, String email) throws ProductNotFoundException, UserNotLoggedInException {
+        if (! userServiceHelper.validateToken(token, email)){
+            throw new UserNotLoggedInException();
+        }
         Optional<Product> optionalProduct  = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
             throw new ProductNotFoundException("Product not found");
         }
+
         Product product = optionalProduct.get();
         return product;
     }

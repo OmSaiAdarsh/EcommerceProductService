@@ -3,6 +3,8 @@ package org.example.ecommerceapp.services;
 import org.example.ecommerceapp.dtos.FakeStoreResponseDTO;
 import org.example.ecommerceapp.exceptions.ProductNotCreatedException;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
+import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
+import org.example.ecommerceapp.helpers.UserServiceHelper;
 import org.example.ecommerceapp.models.Category;
 import org.example.ecommerceapp.models.Product;
 import org.example.ecommerceapp.repositories.CategoryRepository;
@@ -23,7 +25,8 @@ import static org.mockito.Mockito.when;
 public class ProductServiceTest {
     ProductRepository productRepository = Mockito.mock(ProductRepository.class);
     CategoryRepository categoryRepository = Mockito.mock(CategoryRepository.class);
-    ProductService productService = new ProductDBService(productRepository,categoryRepository);
+    UserServiceHelper userServiceHelper = Mockito.mock(UserServiceHelper.class);
+    ProductService productService = new ProductDBService(productRepository,categoryRepository,userServiceHelper);
     RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
     ProductService fakeProductService = new FakeStoreProductService(restTemplate);
 
@@ -37,13 +40,13 @@ public class ProductServiceTest {
         return Optional.of(product);
     }
     @Test
-    public void testGetProductByIdReturnsProduct() throws ProductNotFoundException{
+    public void testGetProductByIdReturnsProduct() throws ProductNotFoundException, UserNotLoggedInException {
         //arrange
         Optional<Product> optionalProduct = getOptionalProduct();
         when(productRepository.findById(anyLong())).thenReturn(optionalProduct);
 
         // act
-        Product product = productService.getProductById(1L);
+        Product product = productService.getProductById(1L,"","");
 
         //assert
         Assertions.assertEquals(1L, product.getId());
@@ -54,7 +57,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void testGetProductByIdThrowsProductNotFoundException() throws ProductNotFoundException{
+    public void testGetProductByIdThrowsProductNotFoundException() throws ProductNotFoundException, UserNotLoggedInException {
         //arrange
         when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -62,7 +65,7 @@ public class ProductServiceTest {
         //Product product = productService.getProductById(1L);
 
         //assert
-        Assertions.assertThrows(ProductNotFoundException.class,()->productService.getProductById(2L));
+        Assertions.assertThrows(ProductNotFoundException.class,()->productService.getProductById(2L,"",""));
     }
 
     @Test

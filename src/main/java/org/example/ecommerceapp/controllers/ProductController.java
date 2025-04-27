@@ -4,6 +4,7 @@ import org.example.ecommerceapp.dtos.ProductRequestDTO;
 import org.example.ecommerceapp.dtos.ProductResponseDTO;
 import org.example.ecommerceapp.exceptions.ProductNotCreatedException;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
+import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Product;
 import org.example.ecommerceapp.services.ProductService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,9 +36,12 @@ public class ProductController {
 //    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable long id) throws ProductNotFoundException {
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable long id,
+                                                            @RequestHeader("token") String token,
+                                                             @RequestHeader("email") String email)
+            throws ProductNotFoundException, UserNotLoggedInException {
 
-        Product product = productService.getProductById(id);
+        Product product = productService.getProductById(id, token, email);
         ProductResponseDTO productResponseDTO = ProductResponseDTO.from(product);
         ResponseEntity<ProductResponseDTO> responseEntity = new ResponseEntity<>(productResponseDTO, HttpStatus.OK);
 

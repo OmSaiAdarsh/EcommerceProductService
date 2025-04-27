@@ -3,6 +3,7 @@ package org.example.ecommerceapp.exceptions;
 import org.example.ecommerceapp.dtos.ErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException;
@@ -26,6 +27,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UserNotLoggedInException.class)
+    public ResponseEntity<ErrorDTO> handleUserNotLoggedInException(){
+        ErrorDTO error = new ErrorDTO();
+        error.setMessage("User not logged in");
+        error.setStatus("401");
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(HttpServerErrorException.InternalServerError.class)
     public ResponseEntity<?> handleServerException(Exception ex) {
         ErrorDTO error = new ErrorDTO();
@@ -33,6 +42,8 @@ public class GlobalExceptionHandler {
         error.setStatus("500");
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
 
 
 }

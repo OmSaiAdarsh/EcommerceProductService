@@ -48,7 +48,7 @@ public class CartController {
         return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/")
+    @GetMapping("{id}")
     public List<CartItemResponseDto> getCart(@PathVariable long id,
                                              @RequestHeader("token") String token,
                                              @RequestHeader("email") String email) throws UserNotLoggedInException{

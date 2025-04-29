@@ -1,13 +1,19 @@
 package org.example.ecommerceapp.controllers;
 
-import org.example.ecommerceapp.dtos.CartProductDto;
+import org.example.ecommerceapp.dtos.CartItemDto;
+import org.example.ecommerceapp.dtos.CartItemResponseDto;
 import org.example.ecommerceapp.dtos.CartRequestDto;
 import org.example.ecommerceapp.dtos.CartResponseDto;
 import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Cart;
+import org.example.ecommerceapp.models.CartItem;
 import org.example.ecommerceapp.services.CartService;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/carts")
@@ -31,13 +37,34 @@ public class CartController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCart(@PathVariable long id){}
+    public ResponseEntity<Boolean> deleteCart(@PathVariable long id,
+                                              @RequestHeader("token") String token,
+                                              @RequestHeader("email") String email) throws UserNotLoggedInException {
+        ResponseEntity<Boolean> responseEntity;
+        boolean isDeleted = cartService.deleteCart(token, email, id);
+        if (isDeleted) {
+            return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
+    }
 
     @GetMapping("/")
-    public void getCart(@PathVariable long id){}
+    public List<CartItemResponseDto> getCart(@PathVariable long id,
+                                             @RequestHeader("token") String token,
+                                             @RequestHeader("email") String email) throws UserNotLoggedInException{
+        List<CartItem> cartItems = cartService.getCartItems(token, email, id);
+
+        List<CartItemResponseDto> cartItemResponseDtos = new ArrayList<>();
+        for (CartItem cartItem : cartItems) {
+            cartItemResponseDtos.add(CartItemResponseDto.from(cartItem));
+        }
+        return cartItemResponseDtos;
+
+
+    }
 
     @PostMapping("/{id}/products")
-    public void addProductToCart(@PathVariable long id, @RequestBody CartProductDto cartProductDto){
+    public void addProductToCart(@PathVariable long id, @RequestBody CartItemDto cartItemDto){
 
     }
     @DeleteMapping("/{id}/products/{productId}")

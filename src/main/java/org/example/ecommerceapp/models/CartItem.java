@@ -17,7 +17,7 @@ public class CartItem {
     public Cart cart;
     // public String email; redundancy
     @ManyToOne
-    public Product product;
+    public Product item;
 
     private Date addedAt;
 }

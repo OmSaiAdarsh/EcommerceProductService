@@ -1,14 +1,20 @@
 package org.example.ecommerceapp.services;
 
+import org.example.ecommerceapp.exceptions.ProductNotFoundException;
 import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.helpers.UserServiceHelper;
 import org.example.ecommerceapp.models.Cart;
 import org.example.ecommerceapp.models.CartItem;
+import org.example.ecommerceapp.models.Inventory;
+import org.example.ecommerceapp.models.Product;
 import org.example.ecommerceapp.repositories.CartItemRepository;
 import org.example.ecommerceapp.repositories.CartRepository;
-import org.springframework.http.ResponseEntity;
+import org.example.ecommerceapp.repositories.InventoryRepository;
+import org.example.ecommerceapp.repositories.ProductRepository;
+
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +23,18 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     public UserServiceHelper userServiceHelper;
     public CartRepository cartRepository;
-    public CartServiceImpl(UserServiceHelper userServiceHelper, CartRepository cartRepository, CartItemRepository cartItemRepository) {
+    public ProductRepository productRepository;
+    public InventoryRepository inventoryRepository;
+
+    public CartServiceImpl(UserServiceHelper userServiceHelper, CartRepository cartRepository,
+                           CartItemRepository cartItemRepository, ProductRepository productRepository,
+                           InventoryRepository inventoryRepository) {
         this.userServiceHelper = userServiceHelper;
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
+        this.inventoryRepository = inventoryRepository;
+
     }
 
     @Override
@@ -45,7 +59,8 @@ public class CartServiceImpl implements CartService {
         }
         Optional<Cart> optionalCart = cartRepository.findById(id);
         if (optionalCart.isEmpty()){
-            throw new UserNotLoggedInException(); // actually throw cart not created Exception
+            return false;
+            //throw new UserNotLoggedInException(); // actually throw cart not created Exception
         }
         Cart cart = optionalCart.get();
 
@@ -65,10 +80,71 @@ public class CartServiceImpl implements CartService {
         }
         Optional<Cart> optionalCart = cartRepository.findById(id);
         if (optionalCart.isEmpty()) {
-            throw new UserNotLoggedInException(); // actually throw the cart not created Exception.
+            return new ArrayList<>();
+            // throw new UserNotLoggedInException(); // actually throw the cart not created Exception.
         }
         Cart cart = optionalCart.get();
         List<CartItem> cartItems = cart.getItems();
         return cartItems;
     }
+
+    public CartItem addCartItem(String token, String email, long cart_id, long product_id, int quantity) throws UserNotLoggedInException, ProductNotFoundException{
+        if(!userServiceHelper.validateToken(token, email)){
+            throw new UserNotLoggedInException();
+        }
+        Optional<Cart> optionalCart = cartRepository.findById(cart_id);
+        if (optionalCart.isEmpty()){
+            throw new UserNotLoggedInException(); // throw Cart not found exception.
+        }
+        Cart cart = optionalCart.get();
+
+        // get products from product repository
+        Optional<Product> optionalProduct = productRepository.findById(product_id);
+        if (optionalProduct.isEmpty()){
+            throw new ProductNotFoundException("Product not found");
+        }
+
+        Product product = optionalProduct.get();
+
+        // check the quantity passed as a positive integer.
+        if (quantity <= 0){
+            throw new ProductNotFoundException("Quantity must be greater than 0");// actually throw quantityShouldBePositiveException.
+        }
+
+        // get inventory for product id and check the quantity from the inventory.
+        Optional<Inventory> optionalInventory = inventoryRepository.findByProduct(product);
+        if (optionalInventory.isEmpty()){
+            throw new ProductNotFoundException("Product not found in Inventory");// throw Inventory not there for product.
+        }
+        Inventory inventory = optionalInventory.get();
+
+        //check quantity
+        if (inventory.getQuantity() < quantity){
+            throw new ProductNotFoundException("Quantity is not sufficient in inventory. Available Quantity: " + inventory.getQuantity());
+        }
+
+        // find that whether we have that product in the cart given, if yes, update the quantity.(provided the cart and the product is available and quantity is also available)
+
+        Optional<CartItem> optionalCartItem = cartItemRepository.findByCartAndItem(cart, product);
+
+        //initialise the new cartItem
+        CartItem cartItem = new CartItem();
+
+        if (optionalCartItem.isPresent()){
+            // update the cartItem with the existing data
+            cartItem = optionalCartItem.get();
+            cartItem.setQuantity(quantity+cartItem.getQuantity());
+
+        }
+        else {
+            //CartItem cartItem = new CartItem();
+            cartItem.setCart(cart);
+            cartItem.setItem(product);
+            cartItem.setQuantity(quantity);
+        }
+        cartItemRepository.save(cartItem);
+        return cartItem;
+
+    }
+
 }

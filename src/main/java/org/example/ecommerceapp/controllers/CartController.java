@@ -4,9 +4,11 @@ import org.example.ecommerceapp.dtos.CartItemDto;
 import org.example.ecommerceapp.dtos.CartItemResponseDto;
 import org.example.ecommerceapp.dtos.CartRequestDto;
 import org.example.ecommerceapp.dtos.CartResponseDto;
+import org.example.ecommerceapp.exceptions.ProductNotFoundException;
 import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Cart;
 import org.example.ecommerceapp.models.CartItem;
+import org.example.ecommerceapp.repositories.CartRepository;
 import org.example.ecommerceapp.services.CartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,10 +65,21 @@ public class CartController {
 
     }
 
-    @PostMapping("/{id}/products")
-    public void addProductToCart(@PathVariable long id, @RequestBody CartItemDto cartItemDto){
+    @PostMapping("/{id}/items")
+    public CartItemResponseDto addProductToCart(@PathVariable long id, @RequestBody CartItemDto cartItemDto,
+                                            @RequestHeader("token") String token,
+                                            @RequestHeader("email") String email) throws UserNotLoggedInException, ProductNotFoundException {
+        if (id == 0 || cartItemDto == null || token == null || email == null)
+            throw new RuntimeException("Send all the details");
+        CartItem cartItem = cartService.addCartItem(token, email,
+                cartItemDto.getCartId(),
+                cartItemDto.getProductId(),
+                cartItemDto.getQuantity());
+        CartItemResponseDto cartItemResponseDto = CartItemResponseDto.from(cartItem);
+        return cartItemResponseDto;
 
     }
+
     @DeleteMapping("/{id}/products/{productId}")
     public void deleteProductFromCart(@PathVariable("id") long id, @PathVariable("productId") long productId){}
 

@@ -3,8 +3,8 @@ package org.example.ecommerceapp.dtos;
 import lombok.Data;
 
 @Data
-public class CartItemDto {
+public class InventoryResponseDto {
+    private long inventoryId;
     private long productId;
-    private long cartId;
     private int quantity;
 }

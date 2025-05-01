@@ -1,5 +1,7 @@
 package org.example.ecommerceapp.services;
 
+import org.example.ecommerceapp.dtos.CartItemResponseDto;
+import org.example.ecommerceapp.exceptions.ProductNotFoundException;
 import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Cart;
 import org.example.ecommerceapp.models.CartItem;
@@ -11,4 +13,5 @@ public interface CartService {
     //public Cart getCart(String token);
     public boolean deleteCart(String token, String email, long id) throws UserNotLoggedInException;
     public List<CartItem> getCartItems(String token, String email, long id) throws UserNotLoggedInException;
+    public CartItem addCartItem(String token, String email, long cart_id, long product_id, int quantity) throws UserNotLoggedInException, ProductNotFoundException;
 }

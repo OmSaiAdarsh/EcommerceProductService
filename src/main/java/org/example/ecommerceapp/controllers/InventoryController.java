@@ -39,7 +39,7 @@ public class InventoryController {
 
 
     }
-    @GetMapping("/")
+    @GetMapping("/{id}")
     public InventoryResponseDto getInventory(@PathVariable long id,
                                              @RequestHeader("token") String token, @RequestHeader("email") String email) throws UserNotLoggedInException, ProductNotFoundException {
         Inventory inventory = inventoryService.getInventoryByProductId(token, email, id);

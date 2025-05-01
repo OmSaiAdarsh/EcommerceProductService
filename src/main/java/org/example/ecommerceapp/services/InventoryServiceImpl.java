@@ -24,7 +24,13 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory getInventoryByProductId(String token, String email, long id) throws ProductNotFoundException,UserNotLoggedInException {
+    public Inventory getInventoryByProductId(String token, String email,long id) throws UserNotLoggedInException, ProductNotFoundException {
+        if(!userServiceHelper.validateToken(token, email)){
+            throw new UserNotLoggedInException();
+        }
+        return getInventoryByProductIdInternal(id);
+    }
+    public Inventory getInventoryByProductIdInternal( long id) throws ProductNotFoundException,UserNotLoggedInException {
 
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
@@ -37,7 +43,6 @@ public class InventoryServiceImpl implements InventoryService {
         }
         Inventory inventory = optionalInventory.get();
         return inventory;
-        //return null;
     }
 
     @Override
@@ -80,8 +85,8 @@ public class InventoryServiceImpl implements InventoryService {
             throw new ProductNotFoundException("Product not found");
 
         }
-        Product product = optionalProduct.get();
-        Inventory inventory = getInventoryByProductId(productId);
+        //Product product = optionalProduct.get();
+        Inventory inventory = getInventoryByProductIdInternal(productId);
         inventory.setQuantity(quantity+inventory.getQuantity());
         inventoryRepository.save(inventory);
         return inventory;
@@ -93,7 +98,7 @@ public class InventoryServiceImpl implements InventoryService {
             throw new UserNotLoggedInException();
         }
 
-        Inventory inventory = getInventoryByProductId(id);
+        Inventory inventory = getInventoryByProductIdInternal(id);
         inventoryRepository.delete(inventory);
         return true;
 

@@ -74,76 +74,108 @@ public class CartServiceImpl implements CartService {
         return true;
     }
 
-    public List<CartItem> getCartItems(String token, String email, long id) throws UserNotLoggedInException{
+    public Cart getCart(String token, String email, long id) throws UserNotLoggedInException, ProductNotFoundException{
         if(!userServiceHelper.validateToken(token, email)){
             throw new UserNotLoggedInException();
         }
         Optional<Cart> optionalCart = cartRepository.findById(id);
         if (optionalCart.isEmpty()) {
-            return new ArrayList<>();
+            throw new ProductNotFoundException("Cart doesn't exist");
             // throw new UserNotLoggedInException(); // actually throw the cart not created Exception.
         }
         Cart cart = optionalCart.get();
-        List<CartItem> cartItems = cart.getItems();
-        return cartItems;
+        // List<CartItem> cartItems = cart.getItems();
+        return cart;
     }
 
-    public CartItem addCartItem(String token, String email, long cart_id, long product_id, int quantity) throws UserNotLoggedInException, ProductNotFoundException{
+//    public CartItem addCartItem(String token, String email, long cartId, long productId, int quantity) throws UserNotLoggedInException, ProductNotFoundException{
+//        if(!userServiceHelper.validateToken(token, email)){
+//            throw new UserNotLoggedInException();
+//        }
+//        Optional<Cart> optionalCart = cartRepository.findById(cartId);
+//        if (optionalCart.isEmpty()){
+//            throw new ProductNotFoundException("Cart doesnt exist"); // throw CartNotFoundException.
+//        }
+//        Cart cart = optionalCart.get();
+//
+//        // get products from product repository
+//        Optional<Product> optionalProduct = productRepository.findById(productId);
+//        if (optionalProduct.isEmpty()){
+//            throw new ProductNotFoundException("Product not found");
+//        }
+//
+//        Product product = optionalProduct.get();
+//
+//        // check the quantity passed as a positive integer.
+//        if (quantity <= 0){
+//            throw new ProductNotFoundException("Quantity must be greater than 0");// actually throw quantityShouldBePositiveException.
+//        }
+//
+//        // get inventory for product id and check the quantity from the inventory.
+//        Optional<Inventory> optionalInventory = inventoryRepository.findByProduct(product);
+//        if (optionalInventory.isEmpty()){
+//            throw new ProductNotFoundException("Product not found in Inventory");// throw Inventory not there for product.
+//        }
+//        Inventory inventory = optionalInventory.get();
+//
+//        //check quantity
+//        if (inventory.getQuantity() < quantity){
+//            throw new ProductNotFoundException("Quantity is not sufficient in inventory. Available Quantity: " + inventory.getQuantity());
+//        }
+//
+//        // find that whether we have that product in the cart given, if yes, update the quantity.(provided the cart and the product is available and quantity is also available)
+//
+//        Optional<CartItem> optionalCartItem = cartItemRepository.findByCartAndItem(cart, product);
+//
+//        //initialise the new cartItem
+//        CartItem cartItem = new CartItem();
+//
+//        if (optionalCartItem.isPresent()){
+//            // update the cartItem with the existing data
+//            cartItem = optionalCartItem.get();
+//            cartItem.setQuantity(quantity+cartItem.getQuantity());
+//
+//        }
+//        else {
+//            //CartItem cartItem = new CartItem();
+//            cartItem.setCart(cart);
+//            cartItem.setItem(product);
+//            cartItem.setQuantity(quantity);
+//        }
+//        cartItemRepository.save(cartItem);
+//        return cartItem;
+//
+//    }
+
+    public boolean removeCartItem(String token, String email, long cartId, long productId) throws UserNotLoggedInException, ProductNotFoundException{
         if(!userServiceHelper.validateToken(token, email)){
             throw new UserNotLoggedInException();
         }
-        Optional<Cart> optionalCart = cartRepository.findById(cart_id);
+
+        Optional<Cart> optionalCart = cartRepository.findById(cartId);
         if (optionalCart.isEmpty()){
-            throw new UserNotLoggedInException(); // throw Cart not found exception.
+            throw new ProductNotFoundException("Cart not found"); // create this = throw new CartNotFoundException()
         }
         Cart cart = optionalCart.get();
 
-        // get products from product repository
-        Optional<Product> optionalProduct = productRepository.findById(product_id);
+        Optional<Product> optionalProduct = productRepository.findById(productId);
         if (optionalProduct.isEmpty()){
             throw new ProductNotFoundException("Product not found");
         }
-
         Product product = optionalProduct.get();
-
-        // check the quantity passed as a positive integer.
-        if (quantity <= 0){
-            throw new ProductNotFoundException("Quantity must be greater than 0");// actually throw quantityShouldBePositiveException.
-        }
-
-        // get inventory for product id and check the quantity from the inventory.
-        Optional<Inventory> optionalInventory = inventoryRepository.findByProduct(product);
-        if (optionalInventory.isEmpty()){
-            throw new ProductNotFoundException("Product not found in Inventory");// throw Inventory not there for product.
-        }
-        Inventory inventory = optionalInventory.get();
-
-        //check quantity
-        if (inventory.getQuantity() < quantity){
-            throw new ProductNotFoundException("Quantity is not sufficient in inventory. Available Quantity: " + inventory.getQuantity());
-        }
-
-        // find that whether we have that product in the cart given, if yes, update the quantity.(provided the cart and the product is available and quantity is also available)
 
         Optional<CartItem> optionalCartItem = cartItemRepository.findByCartAndItem(cart, product);
 
-        //initialise the new cartItem
-        CartItem cartItem = new CartItem();
-
-        if (optionalCartItem.isPresent()){
-            // update the cartItem with the existing data
-            cartItem = optionalCartItem.get();
-            cartItem.setQuantity(quantity+cartItem.getQuantity());
-
+        if (optionalCartItem.isEmpty()){
+            throw new ProductNotFoundException("Product not found in cart"); // throw CartItemNotFoundException.
         }
-        else {
-            //CartItem cartItem = new CartItem();
-            cartItem.setCart(cart);
-            cartItem.setItem(product);
-            cartItem.setQuantity(quantity);
-        }
-        cartItemRepository.save(cartItem);
-        return cartItem;
+
+        CartItem cartItem = optionalCartItem.get();
+        cartItemRepository.delete(cartItem);
+        //cartItemRepository.deleteById(cartItem.getId());
+        return true;
+
+
 
     }
 

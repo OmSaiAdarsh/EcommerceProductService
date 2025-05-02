@@ -12,6 +12,6 @@ public interface CartService {
     public Cart createCart(String token, String email) throws UserNotLoggedInException;
     //public Cart getCart(String token);
     public boolean deleteCart(String token, String email, long id) throws UserNotLoggedInException;
-    public List<CartItem> getCartItems(String token, String email, long id) throws UserNotLoggedInException;
-    public CartItem addCartItem(String token, String email, long cart_id, long product_id, int quantity) throws UserNotLoggedInException, ProductNotFoundException;
+    public Cart getCart(String token, String email, long id) throws UserNotLoggedInException, ProductNotFoundException;
+    public boolean removeCartItem(String token, String email, long cartId, long productId) throws UserNotLoggedInException, ProductNotFoundException;
 }

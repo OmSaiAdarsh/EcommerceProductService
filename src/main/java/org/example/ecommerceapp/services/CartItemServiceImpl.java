@@ -11,8 +11,10 @@ import org.example.ecommerceapp.repositories.CartItemRepository;
 import org.example.ecommerceapp.repositories.CartRepository;
 import org.example.ecommerceapp.repositories.InventoryRepository;
 import org.example.ecommerceapp.repositories.ProductRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -94,6 +96,54 @@ public class CartItemServiceImpl implements CartItemService {
         cartItemRepository.save(cartItem);
         return cartItem;
 
+    }
+
+    public List<CartItem> getAllCartItems(long cartId) throws ProductNotFoundException {
+        Optional<Cart> optionalCart = cartRepository.findById(cartId);
+        if (optionalCart.isEmpty()){
+            throw new ProductNotFoundException("Cart not found");
+        }
+        Cart cart = optionalCart.get();
+
+        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
+        return cartItems;
+    }
+
+    public CartItem getCartItem(long carItemId) throws ProductNotFoundException {
+        Optional<CartItem> optionalCartItem = cartItemRepository.findById(carItemId);
+        if (optionalCartItem.isEmpty()){
+            throw new ProductNotFoundException("Cart item not found");
+        }
+        return optionalCartItem.get();
+    }
+
+    public CartItem getCartItemFromCartAndProduct(long cartId, long productId) throws ProductNotFoundException {
+        Optional<Cart> optionalCart = cartRepository.findById(cartId);
+        if (optionalCart.isEmpty()){
+            throw new ProductNotFoundException("Cart not found");
+        }
+        Cart cart = optionalCart.get();
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if (optionalProduct.isEmpty()){
+            throw new ProductNotFoundException("Product not found");
+        }
+        Product product = optionalProduct.get();
+        Optional<CartItem> optionalCartItem = cartItemRepository.findByCartAndItem(cart, product);
+        if (optionalCartItem.isEmpty()){
+            throw new ProductNotFoundException("Product not found in Cart");
+        }
+        CartItem cartItem = optionalCartItem.get();
+        return cartItem;
+    }
+
+    public boolean deleteCartItem(long cartItemId) throws ProductNotFoundException {
+        Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
+        if (optionalCartItem.isEmpty()) {
+            throw new ProductNotFoundException("Cart item not found");
+        }
+        CartItem cartItem = optionalCartItem.get();
+        cartItemRepository.delete(cartItem);
+        return true; //ResponseEntity.ok(true);
     }
 
 }

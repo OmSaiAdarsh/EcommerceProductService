@@ -1,4 +1,4 @@
 package org.example.ecommerceapp.services;
 
-public class OrderService {
+public interface OrderService {
 }

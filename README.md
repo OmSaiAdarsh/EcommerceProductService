@@ -15,4 +15,6 @@ This project has all the apis for products, cart, Inventry , cartItems, Search, 
 2. User Service runs on the port 8091
 3. Email Service runs on the port 8092
 
+  Example Api: http://localhost:8090/products/
+
 

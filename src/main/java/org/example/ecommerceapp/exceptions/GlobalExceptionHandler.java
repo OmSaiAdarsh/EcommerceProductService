@@ -35,6 +35,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(GenericExceptionHandlerInThisProject.class)
+    public ResponseEntity<ErrorDTO> handleGenericExceptionInThisProject(GenericExceptionHandlerInThisProject ex){
+
+        ErrorDTO error = new ErrorDTO();
+        error.setStatus("401");
+        error.setMessage(ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(HttpServerErrorException.InternalServerError.class)
     public ResponseEntity<?> handleServerException(Exception ex) {
         ErrorDTO error = new ErrorDTO();

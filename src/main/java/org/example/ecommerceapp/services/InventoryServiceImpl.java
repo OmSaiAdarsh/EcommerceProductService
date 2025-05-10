@@ -87,7 +87,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
         //Product product = optionalProduct.get();
         Inventory inventory = getInventoryByProductIdInternal(productId);
-        inventory.setQuantity(quantity+inventory.getQuantity());
+        inventory.setQuantity(quantity); //+inventory.getQuantity());
         inventoryRepository.save(inventory);
         return inventory;
     }

@@ -56,7 +56,6 @@ public class ChatGptService {
         return chatGptResponseDto;
     }
 
-
     public String getAIProductDescription(long id, String token, String email) throws UserNotLoggedInException, ProductNotFoundException {
 //        if(userServiceHelper.validateToken(token, email)){
 //            throw new UserNotLoggedInException();

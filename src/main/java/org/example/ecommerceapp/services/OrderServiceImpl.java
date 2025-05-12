@@ -1,5 +1,8 @@
 package org.example.ecommerceapp.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.ecommerceapp.dtos.EmailDto;
 import org.example.ecommerceapp.dtos.OrderRequestDto;
 import org.example.ecommerceapp.dtos.OrderResponseDto;
 import org.example.ecommerceapp.exceptions.GenericExceptionHandlerInThisProject;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +35,18 @@ public class OrderServiceImpl implements OrderService {
     public ProductService productService;
     public OrderRepository orderRepository;
     public InventoryService inventoryService;
+    KafkaTemplate<String, String> kafkaTemplate;
+    ObjectMapper objectMapper;// = new ObjectMapper();
 
     public OrderServiceImpl(UserServiceHelper userServiceHelper, @Qualifier("productDBService") ProductService productService, OrderRepository orderRepository, InventoryService inventoryService,
-                            OrderItemRepository orderItemRepository) {
+                            OrderItemRepository orderItemRepository, KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
         this.userServiceHelper = userServiceHelper;
         this.productService = productService;
         this.orderRepository = orderRepository;
         this.inventoryService = inventoryService;
         this.orderItemRepository = orderItemRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
     @Transactional(rollbackFor = Exception.class) // for entire Exception class, usually Transactional is for unchecked exceptions.
     // specific to few checked exceptions
@@ -100,7 +108,24 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setTotalAmount(totalAmount);
         orderRepository.save(order);
+
+        // order created, now send an email to the receipient.
+
+        EmailDto emailDto = new EmailDto();
+        emailDto.setTo(email);
+        emailDto.setSubject("Your order with order id "+order.getId()+" is initiated");
+        emailDto.setBody("Hi "+emailID+" Your order is initiated");
+        emailDto.setFrom("jomsaiadarsh@gmail.com");
+        String sendEmailDTOString;
+        try {
+            sendEmailDTOString  = objectMapper.writeValueAsString(emailDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        kafkaTemplate.send("sendEmail", sendEmailDTOString);
+
         return order;
+
     }
 
     public Order updateOrder(String token , String email, long orderId, OrderRequestDto orderRequestDto) throws ProductNotFoundException, UserNotLoggedInException, GenericExceptionHandlerInThisProject {

@@ -6,6 +6,7 @@ import org.example.ecommerceapp.exceptions.ProductNotCreatedException;
 import org.example.ecommerceapp.exceptions.ProductNotFoundException;
 import org.example.ecommerceapp.exceptions.UserNotLoggedInException;
 import org.example.ecommerceapp.models.Product;
+import org.example.ecommerceapp.services.ChatGptService;
 import org.example.ecommerceapp.services.ProductService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -21,8 +22,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/products")
 public class ProductController {
     public ProductService productService;
-    public ProductController(@Qualifier("productDBService") ProductService productService) {
+    public ChatGptService chatGptService;
+    public ProductController(@Qualifier("productDBService") ProductService productService, ChatGptService chatGptService) {
         this.productService = productService;
+        this.chatGptService = chatGptService;
     }
 
 //    @GetMapping("/{id}")
@@ -46,6 +49,15 @@ public class ProductController {
         ResponseEntity<ProductResponseDTO> responseEntity = new ResponseEntity<>(productResponseDTO, HttpStatus.OK);
 
         return responseEntity;
+    }
+
+    @GetMapping("/aiDesc/{id}")
+    public String getAIProductDescription(@PathVariable long id,
+                                          @RequestHeader("token") String token,
+                                          @RequestHeader("email") String email) throws UserNotLoggedInException, ProductNotFoundException {
+        return chatGptService.getAIProductDescription(id, token, email);
+
+        //return ;
     }
 
     @GetMapping("/")
